@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E4DCC5;
+    --paper:#F6F1E3;
+    --rule:#D6CAA9;
+    --ink:#232A35;
+    --ink-soft:#786D56;
+    --red:#B5484A;
+    --green:#3C6E52;
+    --amber:#B8863A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .tracker{
+    background:var(--bg);
+    padding:28px 16px 48px;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .page{
+    max-width:640px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:3px;
+    box-shadow:0 10px 28px rgba(35,42,53,0.18);
+    overflow:hidden;
+  }
+  .cover{
+    position:relative;
+    padding:26px 24px 22px;
+    border-bottom:2px solid var(--ink);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+  }
+  .eyebrow{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:30px;
+    margin:0;
+    line-height:1.1;
+  }
+  .month-nav{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+  }
+  .month-nav button{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    background:none;
+    border:1px solid var(--ink);
+    color:var(--ink);
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    cursor:pointer;
+    line-height:1;
+  }
+  .month-nav button:hover{background:var(--ink);color:var(--paper);}
+  .today-btn{
+    font-family:'Space Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.04em;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .stamp{
+    flex-shrink:0;
+    width:98px;
+    height:98px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transform:rotate(-9deg);
+    position:relative;
+  }
+  .stamp-ring{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    border:2.5px solid currentColor;
+    box-shadow:inset 0 0 0 4px var(--paper), inset 0 0 0 5px currentColor;
+  }
+  .stamp-text{
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:10.5px;
+    letter-spacing:0.03em;
+    text-align:center;
+    text-transform:uppercase;
+    line-height:1.35;
+    padding:0 10px;
+  }
+  .summary{
+    padding:20px 24px 8px;
+  }
+  .budget-line{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding-bottom:14px;
+    border-bottom:1px dashed var(--rule);
+    margin-bottom:16px;
+  }
+  .budget-line .label{
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .budget-value{
+    font-family:'Space Mono',monospace;
+    font-size:20px;
+    font-weight:700;
+    border-bottom:1px solid var(--ink-soft);
+    padding:2px 3px;
+    min-width:40px;
+    cursor:text;
+    outline:none;
+  }
+  .budget-hint{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    display:block;
+    text-align:right;
+    margin-top:3px;
+  }
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .stats-row-2{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .stat{
+    background:var(--bg);
+    border-radius:4px;
+    padding:10px 10px;
+    text-align:left;
+  }
+  .stat .label{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    display:block;
+    margin-bottom:4px;
+  }
+  .stat .value{
+    font-family:'Space Mono',monospace;
+    font-size:16px;
+    font-weight:700;
+  }
+  .breakdown{
+    margin-bottom:6px;
+  }
+  .breakdown-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .cat-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .cat-dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .cat-name{
+    font-size:12.5px;
+    width:100px;
+    flex-shrink:0;
+  }
+  .cat-bar-track{
+    flex:1;
+    height:7px;
+    background:var(--bg);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .cat-bar-fill{
+    height:100%;
+    border-radius:4px;
+  }
+  .cat-amount{
+    font-family:'Space Mono',monospace;
+    font-size:12px;
+    width:70px;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .email-block{
+    margin:14px 0 4px;
+    padding-top:14px;
+    border-top:1px dashed var(--rule);
+  }
+  .email-block label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    margin-bottom:3px;
+  }
+  .email-block input{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:none;
+    border:none;
+    border-bottom:1px solid var(--ink-soft);
+    padding:5px 2px;
+    margin-bottom:10px;
+  }
+  .email-block input:focus{outline:none;border-bottom:1.5px solid var(--ink);}
+  .email-btn{
+    width:100%;
+    background:none;
+    color:var(--ink);
+    border:1px solid var(--ink);
+    border-radius:4px;
+    padding:9px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .email-btn:hover{background:var(--ink);color:var(--paper);}
+  form.entry-form{
+    padding:16px 24px 20px;
+    border-top:2px solid var(--ink);
+    border-bottom:2px solid var(--ink);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .entry-form label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .type-toggle{
+    display:flex;
+    border:1px solid var(--ink);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .type-btn{
+    flex:1;
+    background:none;
+    border:none;
+    padding:9px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .type-btn+.type-btn{border-left:1px solid var(--ink);}
+  .type-btn.active{background:var(--ink);color:var(--paper);}
+  .cat-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .chip{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    padding:7px 13px;
+    border-radius:14px;
+    border:1.5px solid var(--chip-color, var(--ink-soft));
+    background:none;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .chip.active{
+    background:var(--chip-color, var(--ink));
+    color:var(--paper);
+  }
+  .date-quick{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .date-chip{
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    padding:7px 13px;
+    border-radius:14px;
+    border:1.5px solid var(--ink-soft);
+    background:none;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .date-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .date-quick input[type=date]{
+    flex:1;
+    min-width:130px;
+    border:none;
+    border-bottom:1px solid var(--ink-soft);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    padding:6px 2px;
+    background:none;
+    color:var(--ink);
+  }
+  .amount-note-row{
+    display:flex;
+    gap:14px;
+  }
+  .amount-note-row>div:first-child{width:130px;flex-shrink:0;}
+  .amount-note-row>div:last-child{flex:1;}
+  .entry-form input[type=text], .entry-form input[type=number]{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    background:none;
+    border:none;
+    border-bottom:1px solid var(--ink-soft);
+    padding:6px 2px;
+  }
+  .entry-form input:focus{outline:none;border-bottom:1.5px solid var(--ink);}
+  .add-btn{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:4px;
+    padding:11px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .add-btn:hover{opacity:0.88;}
+  .ledger{
+    padding:6px 24px 24px;
+  }
+  .ledger-header{
+    display:grid;
+    grid-template-columns:56px 130px 1fr 84px 22px;
+    gap:8px;
+    padding:12px 4px 8px;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--ink);
+  }
+  .ledger-row{
+    display:grid;
+    grid-template-columns:56px 130px 1fr 84px 22px;
+    grid-template-areas:"date cat note amount del";
+    gap:8px;
+    align-items:center;
+    padding:10px 4px;
+    border-bottom:1px solid var(--rule);
+  }
+  .ledger-row .date{grid-area:date;font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-soft);}
+  .ledger-row .cat{grid-area:cat;}
+  .ledger-row .note{grid-area:note;font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ledger-row .amount{grid-area:amount;font-family:'Space Mono',monospace;font-size:13.5px;text-align:right;font-weight:700;}
+  .ledger-row .del{grid-area:del;}
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:10px;
+    color:var(--paper);
+    white-space:nowrap;
+  }
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:16px;
+    cursor:pointer;
+    width:22px;
+    height:22px;
+    line-height:1;
+  }
+  .del-btn:hover{color:var(--red);}
+  .empty-state{
+    padding:32px 8px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+  }
+  .loading{
+    padding:48px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-family:'Space Mono',monospace;
+    font-size:13px;
+  }
+  button:focus-visible, input:focus-visible, select:focus-visible, [contenteditable]:focus-visible{
+    outline:2px solid var(--red);
+    outline-offset:2px;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .page{animation:rise 0.4s ease;}
+    @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  }
+  @media (max-width:520px){
+    .stats-row{grid-template-columns:1fr 1fr;}
+    .stats-row .stat:last-child{grid-column:1/-1;}
+    .amount-note-row{flex-direction:column;gap:14px;}
+    .amount-note-row>div:first-child{width:100%;}
+    .ledger-header{display:none;}
+    .ledger-row{
+      grid-template-columns:56px 1fr 22px;
+      grid-template-areas:"date cat del" "note note amount";
+      row-gap:4px;
+    }
+    .ledger-row .note{white-space:normal;}
+    .ledger-row .amount{padding-top:2px;}
+  }
+</style>
+</head>
+<body>
+<div class="tracker">
+  <div class="page" id="page">
+    <div class="loading" id="loadingMsg">Opening ledger…</div>
+  </div>
+</div>
+
+<script>
+const EXPENSE_CATEGORIES = [
+  {key:'rent', label:'Rent & housing', color:'#3E4C63'},
+  {key:'food', label:'Food', color:'#3C6E52'},
+  {key:'transport', label:'Transport', color:'#B8863A'},
+  {key:'subs', label:'Subscriptions', color:'#4A7C82'},
+  {key:'fun', label:'Fun & social', color:'#7A5470'},
+  {key:'other', label:'Other', color:'#8A7F68'}
+];
+const INCOME_CATEGORIES = [
+  {key:'allowance', label:'Allowance', color:'#3C6E52'},
+  {key:'job', label:'Part-time job', color:'#4A7C82'},
+  {key:'scholarship', label:'Scholarship', color:'#3E4C63'},
+  {key:'gift', label:'Gift', color:'#7A5470'},
+  {key:'other-income', label:'Other income', color:'#8A7F68'}
+];
+const expenseCatMap = Object.fromEntries(EXPENSE_CATEGORIES.map(c => [c.key, c]));
+const incomeCatMap = Object.fromEntries(INCOME_CATEGORIES.map(c => [c.key, c]));
+function getCat(e){
+  const map = e.type === 'income' ? incomeCatMap : expenseCatMap;
+  return map[e.category] || {label:'Other', color:'#8A7F68'};
+}
+
+let expenses = [];
+let budgets = {};
+let viewMonthKey = monthKey(new Date());
+let draftType = 'expense';
+let draftCategory = EXPENSE_CATEGORIES[0].key;
+
+function pad(n){return String(n).padStart(2,'0');}
+function monthKey(d){return d.getFullYear() + '-' + pad(d.getMonth()+1);}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function fmtMoney(n){return '\u20B9' + Math.round(n).toLocaleString('en-IN');}
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-1, 1);
+  return d.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+}
+function daysInMonth(key){
+  const [y,m] = key.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem('student-ledger-expenses');
+    expenses = raw ? JSON.parse(raw) : [];
+  }catch(e){ expenses = []; }
+  try{
+    const raw = localStorage.getItem('student-ledger-budgets');
+    budgets = raw ? JSON.parse(raw) : {};
+  }catch(e){ budgets = {}; }
+}
+
+async function saveExpenses(){
+  try{ localStorage.setItem('student-ledger-expenses', JSON.stringify(expenses)); }
+  catch(e){ console.error('save failed', e); }
+}
+async function saveBudgets(){
+  try{ localStorage.setItem('student-ledger-budgets', JSON.stringify(budgets)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+function currentBudget(){
+  if (budgets[viewMonthKey] !== undefined) return budgets[viewMonthKey];
+  const keys = Object.keys(budgets).sort();
+  return keys.length ? budgets[keys[keys.length-1]] : 0;
+}
+
+function render(){
+  const page = document.getElementById('page');
+  const monthEntries = expenses.filter(e => e.date.startsWith(viewMonthKey))
+    .sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  const expenseEntries = monthEntries.filter(e => (e.type || 'expense') === 'expense');
+  const incomeEntries = monthEntries.filter(e => e.type === 'income');
+  const totalSpent = expenseEntries.reduce((s,e) => s + e.amount, 0);
+  const totalIncome = incomeEntries.reduce((s,e) => s + e.amount, 0);
+  const net = totalIncome - totalSpent;
+  const budget = currentBudget();
+  const ratio = budget > 0 ? totalSpent / budget : 0;
+
+  let stampColor = 'var(--ink-soft)', stampText = 'SET A BUDGET';
+  if (budget > 0){
+    if (ratio < 0.8){ stampColor = 'var(--green)'; stampText = 'ON TRACK'; }
+    else if (ratio <= 1.0){ stampColor = 'var(--amber)'; stampText = 'WATCH SPENDING'; }
+    else { stampColor = 'var(--red)'; stampText = 'OVER BUDGET'; }
+  }
+
+  const isCurrentMonth = viewMonthKey === monthKey(new Date());
+  let dailyStat = '\u2014';
+  if (isCurrentMonth && budget > 0){
+    const today = new Date();
+    const daysLeft = daysInMonth(viewMonthKey) - today.getDate() + 1;
+    const remaining = budget - totalSpent;
+    dailyStat = fmtMoney(Math.max(0, remaining) / Math.max(1, daysLeft));
+  } else if (!isCurrentMonth){
+    dailyStat = viewMonthKey < monthKey(new Date()) ? 'closed' : 'upcoming';
+  }
+
+  const catTotals = EXPENSE_CATEGORIES.map(c => ({
+    ...c,
+    total: expenseEntries.filter(e => e.category === c.key).reduce((s,e) => s+e.amount, 0)
+  })).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+  const maxCat = Math.max(1, ...catTotals.map(c => c.total));
+
+  const savedEmail = localStorage.getItem('student-ledger-email') || '';
+
+  if (!EXPENSE_CATEGORIES.find(c => c.key === draftCategory) && !INCOME_CATEGORIES.find(c => c.key === draftCategory)){
+    draftCategory = EXPENSE_CATEGORIES[0].key;
+  }
+
+  page.innerHTML = `
+    <div class="cover">
+      <div>
+        <p class="eyebrow">Student ledger</p>
+        <h1>${monthLabel(viewMonthKey)}</h1>
+        <div class="month-nav">
+          <button id="prevMonth" aria-label="Previous month">\u2039</button>
+          <button id="nextMonth" aria-label="Next month">\u203A</button>
+          ${!isCurrentMonth ? '<button class="today-btn" id="gotoToday">back to today</button>' : ''}
+        </div>
+      </div>
+      <div class="stamp" style="color:${stampColor}">
+        <div class="stamp-ring"></div>
+        <div class="stamp-text">${stampText}${budget>0 ? `<br>${Math.round(ratio*100)}%` : ''}</div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="budget-line">
+        <div>
+          <span class="label">Monthly budget</span>
+        </div>
+        <div style="text-align:right">
+          <span class="budget-value" contenteditable="true" id="budgetValue" spellcheck="false">${budget > 0 ? Math.round(budget) : '0'}</span>
+          <span class="budget-hint">tap to edit</span>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><span class="label">Income</span><span class="value" style="color:var(--green)">${fmtMoney(totalIncome)}</span></div>
+        <div class="stat"><span class="label">Spent</span><span class="value">${fmtMoney(totalSpent)}</span></div>
+        <div class="stat"><span class="label">Net</span><span class="value" style="color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':'\u2212'}${fmtMoney(Math.abs(net))}</span></div>
+      </div>
+      <div class="stats-row-2">
+        <div class="stat"><span class="label">Budget remaining</span><span class="value">${fmtMoney(Math.max(0, budget - totalSpent))}</span></div>
+        <div class="stat"><span class="label">Daily left</span><span class="value">${dailyStat}</span></div>
+      </div>
+      ${catTotals.length ? `
+      <div class="breakdown">
+        <p class="breakdown-title">Spending by category</p>
+        ${catTotals.map(c => `
+          <div class="cat-row">
+            <span class="cat-dot" style="background:${c.color}"></span>
+            <span class="cat-name">${c.label}</span>
+            <span class="cat-bar-track"><span class="cat-bar-fill" style="width:${(c.total/maxCat*100).toFixed(0)}%;background:${c.color}"></span></span>
+            <span class="cat-amount">${fmtMoney(c.total)}</span>
+          </div>
+        `).join('')}
+      </div>` : ''}
+      <div class="email-block">
+        <label for="recipientEmail">Send statements to</label>
+        <input type="email" id="recipientEmail" placeholder="you@example.com" value="${savedEmail}">
+        <button type="button" class="email-btn" id="emailBtn">Email this month's statement</button>
+      </div>
+    </div>
+
+    <form class="entry-form" id="entryForm">
+      <div class="type-toggle" id="typeToggle">
+        <button type="button" class="type-btn ${draftType==='expense'?'active':''}" data-type="expense">Expense</button>
+        <button type="button" class="type-btn ${draftType==='income'?'active':''}" data-type="income">Income</button>
+      </div>
+
+      <div>
+        <label>Category</label>
+        <div class="cat-chips" id="catChips"></div>
+      </div>
+
+      <div>
+        <label>Date</label>
+        <div class="date-quick">
+          <button type="button" class="date-chip active" data-offset="0">Today</button>
+          <button type="button" class="date-chip" data-offset="-1">Yesterday</button>
+          <input type="date" id="entryDate" value="${todayISO()}">
+        </div>
+      </div>
+
+      <div class="amount-note-row">
+        <div>
+          <label for="entryAmount">Amount</label>
+          <input type="number" id="entryAmount" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+        <div>
+          <label for="entryNote">Note (optional)</label>
+          <input type="text" id="entryNote" placeholder="e.g. canteen lunch">
+        </div>
+      </div>
+
+      <button type="submit" class="add-btn" id="addBtn">Add ${draftType === 'income' ? 'income' : 'expense'}</button>
+    </form>
+
+    <div class="ledger">
+      <div class="ledger-header">
+        <span>Date</span><span>Category</span><span>Note</span><span style="text-align:right">Amount</span><span></span>
+      </div>
+      <div id="entriesList">
+        ${monthEntries.length === 0 ? '<div class="empty-state">No entries yet this month \u2014 add your first one below.</div>' :
+          monthEntries.map(e => {
+            const c = getCat(e);
+            const isIncome = e.type === 'income';
+            const dateShort = e.date.slice(8,10) + ' ' + monthLabel(e.date.slice(0,7)).slice(0,3);
+            return `
+            <div class="ledger-row">
+              <span class="date">${dateShort}</span>
+              <span class="cat"><span class="tag" style="background:${c.color}">${c.label}</span></span>
+              <span class="note">${e.note ? escapeHtml(e.note) : '\u2014'}</span>
+              <span class="amount" style="color:${isIncome ? 'var(--green)' : 'var(--ink)'}">${isIncome?'+':'\u2212'}${fmtMoney(e.amount)}</span>
+              <button class="del-btn" data-id="${e.id}" aria-label="Delete entry">\u00D7</button>
+            </div>`;
+          }).join('')
+        }
+      </div>
+    </div>
+  `;
+
+  attachHandlers();
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderCatChips(){
+  const cats = draftType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  if (!cats.find(c => c.key === draftCategory)) draftCategory = cats[0].key;
+  const el = document.getElementById('catChips');
+  el.innerHTML = cats.map(c => `<button type="button" class="chip ${c.key===draftCategory?'active':''}" data-cat="${c.key}" style="--chip-color:${c.color}">${c.label}</button>`).join('');
+  el.querySelectorAll('.chip').forEach(btn => {
+    btn.onclick = () => { draftCategory = btn.dataset.cat; renderCatChips(); };
+  });
+}
+
+function attachHandlers(){
+  document.getElementById('prevMonth').onclick = () => { shiftMonth(-1); };
+  document.getElementById('nextMonth').onclick = () => { shiftMonth(1); };
+  const todayBtn = document.getElementById('gotoToday');
+  if (todayBtn) todayBtn.onclick = () => { viewMonthKey = monthKey(new Date()); render(); };
+
+  const recipientEl = document.getElementById('recipientEmail');
+  recipientEl.addEventListener('blur', () => {
+    try{ localStorage.setItem('student-ledger-email', recipientEl.value.trim()); }catch(e){}
+  });
+  document.getElementById('emailBtn').onclick = emailStatement;
+
+  const budgetEl = document.getElementById('budgetValue');
+  budgetEl.addEventListener('focus', () => {
+    budgetEl.textContent = budgetEl.textContent.replace(/[^\d.]/g,'');
+  });
+  budgetEl.addEventListener('blur', async () => {
+    const val = parseFloat(budgetEl.textContent.replace(/[^\d.]/g,'')) || 0;
+    budgets[viewMonthKey] = val;
+    await saveBudgets();
+    render();
+  });
+  budgetEl.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter'){ ev.preventDefault(); budgetEl.blur(); }
+  });
+
+  document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.onclick = () => {
+      draftType = btn.dataset.type;
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.getElementById('addBtn').textContent = draftType === 'income' ? 'Add income' : 'Add expense';
+      renderCatChips();
+    };
+  });
+  renderCatChips();
+
+  document.querySelectorAll('.date-chip').forEach(btn => {
+    btn.onclick = () => {
+      const offset = parseInt(btn.dataset.offset, 10);
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      document.getElementById('entryDate').value = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      document.querySelectorAll('.date-chip').forEach(b => b.classList.toggle('active', b === btn));
+    };
+  });
+  document.getElementById('entryDate').addEventListener('input', () => {
+    document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  });
+
+  document.getElementById('entryForm').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const date = document.getElementById('entryDate').value;
+    const amount = parseFloat(document.getElementById('entryAmount').value);
+    const note = document.getElementById('entryNote').value.trim();
+    if (!date || !amount || amount <= 0) return;
+    expenses.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      date, type: draftType, category: draftCategory, amount, note
+    });
+    await saveExpenses();
+    viewMonthKey = date.slice(0,7);
+    render();
+  });
+
+  document.querySelectorAll('.del-btn').forEach(btn => {
+    btn.onclick = async () => {
+      expenses = expenses.filter(e => e.id !== btn.dataset.id);
+      await saveExpenses();
+      render();
+    };
+  });
+}
+
+function emailStatement(){
+  const monthEntries = expenses.filter(e => e.date.startsWith(viewMonthKey));
+  const expenseEntries = monthEntries.filter(e => (e.type || 'expense') === 'expense');
+  const incomeEntries = monthEntries.filter(e => e.type === 'income');
+  const totalSpent = expenseEntries.reduce((s,e) => s + e.amount, 0);
+  const totalIncome = incomeEntries.reduce((s,e) => s + e.amount, 0);
+  const net = totalIncome - totalSpent;
+  const budget = currentBudget();
+  const remaining = budget - totalSpent;
+  const catTotals = EXPENSE_CATEGORIES.map(c => ({
+    label: c.label,
+    total: expenseEntries.filter(e => e.category === c.key).reduce((s,e) => s+e.amount, 0)
+  })).filter(c => c.total > 0).sort((a,b) => b.total - a.total);
+
+  let body = 'Student Ledger \u2014 ' + monthLabel(viewMonthKey) + '\n\n';
+  body += 'Income: ' + fmtMoney(totalIncome) + '\n';
+  body += 'Spent: ' + fmtMoney(totalSpent) + '\n';
+  body += 'Net: ' + (net>=0?'+':'\u2212') + fmtMoney(Math.abs(net)) + '\n\n';
+  body += 'Monthly budget: ' + fmtMoney(budget) + '\n';
+  body += 'Remaining: ' + fmtMoney(remaining) + '\n\n';
+  body += 'By category:\n';
+  if (catTotals.length){
+    catTotals.forEach(c => { body += '  ' + c.label + ': ' + fmtMoney(c.total) + '\n'; });
+  } else {
+    body += '  No expenses logged.\n';
+  }
+  body += '\nEntries logged: ' + monthEntries.length + '\n';
+  body += '\nSent from your Student Ledger.';
+
+  const subject = 'Student Ledger - ' + monthLabel(viewMonthKey);
+  const recipient = (localStorage.getItem('student-ledger-email') || '').trim();
+  const mailto = 'mailto:' + recipient + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  window.location.href = mailto;
+}
+
+function shiftMonth(delta){
+  const [y,m] = viewMonthKey.split('-').map(Number);
+  const d = new Date(y, m-1+delta, 1);
+  viewMonthKey = monthKey(d);
+  render();
+}
+
+(async function init(){
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
