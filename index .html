@@ -585,6 +585,7 @@ function render(){
           <button id="prevMonth" aria-label="Previous month">\u2039</button>
           <button id="nextMonth" aria-label="Next month">\u203A</button>
           ${!isCurrentMonth ? '<button class="today-btn" id="gotoToday">back to today</button>' : ''}
+          <a class="today-btn" href="/api/logout" style="text-decoration:underline;margin-left:auto;">log out</a>
         </div>
       </div>
       <div class="stamp" style="color:${stampColor}">
